@@ -25,12 +25,3 @@ Permite introducir letras, reorganizarlas con el ratón o el teclado, mezclarlas
 
 **Evolución prevista:** incorporar una aplicación Laravel y un ecosistema de servicios cuando las necesidades del producto lo justifiquen. Por ahora se prioriza la simplicidad y la posibilidad de jugar sin crear una cuenta.
 
-## Desarrollo local
-
-Abre \`index.html\` directamente en tu navegador. No requiere instalación ni compilación.
-
-## Publicación
-
-En GitHub: **Settings → Pages → Build and deployment → Deploy from a branch → main → /(root)**.
-
-La URL prevista es: https://adrigar94.github.io/JueguitosLabs/
