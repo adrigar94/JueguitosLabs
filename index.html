@@ -15,7 +15,7 @@
     .panel{border:1px solid #363a51;border-radius:25px;background:linear-gradient(145deg,#202437,#191d2d);padding:clamp(20px,4vw,36px);box-shadow:0 25px 65px #05071055}
     label{display:block;font-size:.83rem;color:#c9cce0;margin-bottom:11px;font-weight:700}.entry{display:flex;gap:10px;flex-wrap:wrap}input{min-width:160px;flex:1;border:1px solid #4b4e68;background:#121624;border-radius:13px;padding:15px 17px;color:white;font-size:1.1rem;letter-spacing:.09em;text-transform:uppercase}button{border:1px solid #41465e;color:#e9eafa;background:#292d43;padding:12px 16px;border-radius:12px;font-weight:700;transition:background .15s,transform .15s}button:hover:not(:disabled){background:#363b57}button:active:not(:disabled){transform:scale(.97)}button:disabled{opacity:.4;cursor:not-allowed}.primary{background:#9f8bff;color:#111323;border-color:#9f8bff}.primary:hover:not(:disabled){background:#baa9ff}.hint{color:#858da8;font-size:.82rem;margin:11px 0 0;line-height:1.5}
     .divider{height:1px;background:#34384e;margin:29px 0}.row-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.row-title h2{margin:0;font-size:1rem}.counter{color:#a3a8bf;font-size:.85rem}
-    .tiles{display:flex;flex-wrap:wrap;gap:10px;padding:28px 0 20px;min-height:116px;align-items:center}.tile{width:clamp(43px,8vw,61px);height:clamp(55px,10vw,72px);border:1px solid #8572dc;border-bottom:4px solid #6653b8;border-radius:12px;background:linear-gradient(145deg,#a79af6,#8477d7);box-shadow:0 6px 16px #05071550;color:#141329;font-size:clamp(1.25rem,3vw,1.9rem);font-weight:850;display:grid;place-items:center;user-select:none;-webkit-user-select:none;touch-action:none;cursor:grab}.tile:hover{background:#b6a9ff;transform:translateY(-2px)}.tile.dragging{opacity:.35}.tile.touch-source{opacity:.3}.tile.touch-target{outline:3px dashed #d5caff;outline-offset:4px}.touch-ghost{position:fixed;z-index:1000;pointer-events:none;transform:translate(-50%,-50%) rotate(-5deg) scale(1.08);opacity:.95;box-shadow:0 14px 28px #05071588;cursor:grabbing}.tile.over{outline:3px dashed #d5caff;outline-offset:4px}.tile.selected{outline:3px solid #e7c77c;outline-offset:4px}.empty{color:#7f87a2;margin:10px 0}
+    .tiles{display:flex;flex-wrap:wrap;gap:10px;padding:28px 0 20px;min-height:116px;align-items:center}.tile{width:clamp(43px,8vw,61px);height:clamp(55px,10vw,72px);border:1px solid #8572dc;border-bottom:4px solid #6653b8;border-radius:12px;background:linear-gradient(145deg,#a79af6,#8477d7);box-shadow:0 6px 16px #05071550;color:#141329;font-size:clamp(1.25rem,3vw,1.9rem);font-weight:850;display:grid;place-items:center;user-select:none;-webkit-user-select:none;touch-action:none;cursor:grab}.tile:hover{background:#b6a9ff;transform:translateY(-2px)}.tile.touch-source{opacity:.3}.drop-indicator{position:fixed;z-index:999;width:5px;border-radius:6px;background:#e7c77c;box-shadow:0 0 0 3px #e7c77c33,0 0 18px #e7c77c88;pointer-events:none}.touch-ghost{position:fixed;z-index:1000;pointer-events:none;transform:translate(-50%,-50%) rotate(-5deg) scale(1.08);opacity:.95;box-shadow:0 14px 28px #05071588;cursor:grabbing}.tile.selected{outline:3px solid #e7c77c;outline-offset:4px}.empty{color:#7f87a2;margin:10px 0}
     .actions{display:flex;flex-wrap:wrap;gap:10px}.result{margin-top:24px;padding:19px;border-radius:15px;background:#121625;border:1px solid #383d54;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}.result small{color:#989fbc;font-weight:700;text-transform:uppercase;letter-spacing:.1em}.word{font-size:clamp(1.2rem,4vw,1.8rem);font-weight:800;letter-spacing:.16em;overflow-wrap:anywhere;margin-top:7px}.toast{min-height:1.5rem;font-size:.86rem;color:#b8e2c7;margin:15px 0 0}.footer{color:#737d98;margin-top:25px;font-size:.86rem}.kbd{border:1px solid #454963;padding:1px 6px;border-radius:5px;color:#c6cbe0}
     @media(max-width:550px){.tag{margin-top:45px}.entry .primary{width:100%}.panel{border-radius:19px}.tile{width:44px;height:57px}.result{align-items:flex-start}}
     @media(prefers-reduced-motion:reduce){*{transition:none!important}}
@@ -36,7 +36,7 @@
       <div class="divider"></div>
       <div class="row-title"><h2>Mesa de trabajo</h2><span id="counter" class="counter">0 letras</span></div>
       <div id="tiles" class="tiles" aria-label="Fichas ordenables"><p class="empty">Escribe unas letras para empezar.</p></div>
-      <p class="hint">Arrastra las fichas para reordenarlas. También puedes seleccionar dos fichas para intercambiarlas o usar las flechas del teclado.</p>
+      <p class="hint">Arrastra las fichas para reordenarlas. La línea dorada indica dónde se insertará la ficha. También puedes pulsar una letra y después otra para moverla delante de esta, o usar las flechas del teclado.</p>
       <div class="divider"></div>
       <div class="actions">
         <button id="shuffle" type="button" disabled>⇄ Mezclar</button>
@@ -53,25 +53,51 @@
     (() => {
       "use strict";
       const elements = Object.fromEntries(["form","source","tiles","counter","shuffle","undo","reset","copy","result","toast"].map(id => [id,document.getElementById(id)]));
-      let original = [], letters = [], history = [], selected = null, dragged = null;
-      let touchDrag = null, ignoreClickUntil = 0;
+      let original = [], letters = [], history = [], selected = null;
+      let pointerDrag = null, ignoreClickUntil = 0;
       const normalize = text => Array.from(text.toLocaleUpperCase("es").normalize("NFC")).filter(char => /\p{L}/u.test(char));
       const setMessage = text => { elements.toast.textContent = text; };
       function record() { history.push([...letters]); if (history.length > 100) history.shift(); }
-      function move(from,to) {
-        if (from === to || from < 0 || to < 0 || from >= letters.length || to >= letters.length) return;
+      function moveToSlot(from,slot) {
+        if (from < 0 || from >= letters.length || slot < 0 || slot > letters.length) return;
+        const to = slot > from ? slot - 1 : slot;
+        if (from === to) { selected = null; render(); return; }
         record();
         const [item] = letters.splice(from,1);
         letters.splice(to,0,item);
         selected = null;
         render();
       }
-      function swap(from,to) {
-        if (from === to) { selected = null; render(); return; }
-        record();
-        [letters[from],letters[to]] = [letters[to],letters[from]];
-        selected = null;
-        render();
+      function insertionAt(x,y) {
+        const tiles = [...elements.tiles.querySelectorAll(".tile")];
+        if (!tiles.length) return null;
+        const box = elements.tiles.getBoundingClientRect();
+        if (y < box.top-28 || y > box.bottom+28 || x < box.left-28 || x > box.right+28) return null;
+        let nearest = null, distance = Infinity;
+        for (const tile of tiles) {
+          const rect = tile.getBoundingClientRect();
+          const dx = Math.max(rect.left-x,0,x-rect.right);
+          const dy = Math.max(rect.top-y,0,y-rect.bottom);
+          const d = dx*dx+dy*dy;
+          if (d < distance) { distance=d; nearest=tile; }
+        }
+        const rect = nearest.getBoundingClientRect();
+        const before = x < rect.left + rect.width/2;
+        return { slot:Number(nearest.dataset.index)+(before ? 0 : 1), x:before ? rect.left-5 : rect.right+5, y:rect.top, height:rect.height };
+      }
+      function updatePointerPreview(event) {
+        const state = pointerDrag;
+        if (!state) return;
+        const point = insertionAt(event.clientX,event.clientY);
+        state.slot = point?.slot ?? null;
+        state.ghost.style.left = event.clientX + "px";
+        state.ghost.style.top = event.clientY + "px";
+        state.indicator.style.display = point ? "block" : "none";
+        if (point) {
+          state.indicator.style.left = point.x-2.5 + "px";
+          state.indicator.style.top = point.y + "px";
+          state.indicator.style.height = point.height + "px";
+        }
       }
       function render() {
         elements.tiles.replaceChildren();
@@ -80,68 +106,59 @@
         for (const [index, letter] of letters.entries()) {
           const tile = document.createElement("button");
           tile.type = "button"; tile.className = "tile"; tile.textContent = letter;
-          tile.draggable = true; tile.dataset.index = String(index);
+          tile.dataset.index = String(index);
           tile.setAttribute("aria-label",letter + ", posición " + (index+1));
           if (selected === index) tile.classList.add("selected");
           tile.addEventListener("click", () => {
             if (Date.now() < ignoreClickUntil) return;
             if (selected === null) { selected = index; render(); elements.tiles.children[index]?.focus(); }
-            else swap(selected,index);
+            else moveToSlot(selected,index);
           });
           tile.addEventListener("keydown", event => {
             const offset = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
             if (!offset) return;
             event.preventDefault();
             const target = index + offset;
-            if (target >= 0 && target < letters.length) { move(index,target); elements.tiles.children[target]?.focus(); }
+            if (target >= 0 && target < letters.length) { moveToSlot(index,offset > 0 ? index+2 : index-1); elements.tiles.children[target]?.focus(); }
           });
           tile.addEventListener("pointerdown", event => {
-            if (event.pointerType === "mouse" || !event.isPrimary) return;
-            touchDrag = { pointerId:event.pointerId, from:index, startX:event.clientX, startY:event.clientY, active:false, ghost:null, target:null };
+            if (!event.isPrimary || event.button !== 0) return;
+            pointerDrag = { pointerId:event.pointerId, from:index, startX:event.clientX, startY:event.clientY, active:false, slot:null, ghost:null, indicator:null };
             tile.setPointerCapture(event.pointerId);
           });
           tile.addEventListener("pointermove", event => {
-            const state = touchDrag;
+            const state = pointerDrag;
             if (!state || state.pointerId !== event.pointerId) return;
             if (!state.active && Math.hypot(event.clientX-state.startX,event.clientY-state.startY) < 7) return;
             if (!state.active) {
               state.active = true;
-              const ghost = tile.cloneNode(true);
-              ghost.classList.remove("selected");
-              ghost.classList.add("touch-ghost");
-              ghost.style.width = tile.offsetWidth + "px";
-              ghost.style.height = tile.offsetHeight + "px";
-              document.body.append(ghost);
-              state.ghost = ghost;
+              state.ghost = tile.cloneNode(true);
+              state.ghost.classList.remove("selected");
+              state.ghost.classList.add("touch-ghost");
+              state.ghost.style.width = tile.offsetWidth+"px";
+              state.ghost.style.height = tile.offsetHeight+"px";
+              state.indicator = document.createElement("div");
+              state.indicator.className = "drop-indicator";
+              document.body.append(state.ghost,state.indicator);
               tile.classList.add("touch-source");
             }
             event.preventDefault();
-            state.ghost.style.left = event.clientX + "px";
-            state.ghost.style.top = event.clientY + "px";
-            elements.tiles.querySelector(".touch-target")?.classList.remove("touch-target");
-            const candidate = document.elementFromPoint(event.clientX,event.clientY)?.closest(".tile");
-            state.target = candidate && elements.tiles.contains(candidate) ? Number(candidate.dataset.index) : null;
-            if (state.target !== null && state.target !== state.from) candidate.classList.add("touch-target");
+            updatePointerPreview(event);
           });
-          function finishTouch(event, cancelled) {
-            const state = touchDrag;
+          function finishPointer(event,cancelled) {
+            const state = pointerDrag;
             if (!state || state.pointerId !== event.pointerId) return;
-            touchDrag = null;
+            pointerDrag = null;
             if (tile.hasPointerCapture(event.pointerId)) tile.releasePointerCapture(event.pointerId);
             state.ghost?.remove();
+            state.indicator?.remove();
             tile.classList.remove("touch-source");
-            elements.tiles.querySelector(".touch-target")?.classList.remove("touch-target");
             if (!state.active) return;
-            ignoreClickUntil = Date.now() + 450;
-            if (!cancelled && state.target !== null) move(state.from,state.target);
+            ignoreClickUntil = Date.now()+450;
+            if (!cancelled && state.slot !== null) moveToSlot(state.from,state.slot);
           }
-          tile.addEventListener("pointerup", event => finishTouch(event,false));
-          tile.addEventListener("pointercancel", event => finishTouch(event,true));
-          tile.addEventListener("dragstart",event => { dragged = index; tile.classList.add("dragging"); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain",String(index)); });
-          tile.addEventListener("dragover",event => { event.preventDefault(); event.dataTransfer.dropEffect = "move"; tile.classList.add("over"); });
-          tile.addEventListener("dragleave",() => tile.classList.remove("over"));
-          tile.addEventListener("drop",event => { event.preventDefault(); const from = dragged; dragged = null; if (from !== null) move(from,index); });
-          tile.addEventListener("dragend",() => { dragged = null; for(const child of elements.tiles.children) child.classList.remove("over","dragging"); });
+          tile.addEventListener("pointerup",event => finishPointer(event,false));
+          tile.addEventListener("pointercancel",event => finishPointer(event,true));
           elements.tiles.append(tile);
         }
         if (!letters.length) { const empty = document.createElement("p"); empty.className = "empty"; empty.textContent = "Escribe unas letras para empezar."; elements.tiles.append(empty); }
