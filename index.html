@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#10131d">
+  <meta name="description" content="Laboratorio de anagramas de JueguitosLabs. Reordena letras y descubre palabras a tu ritmo.">
+  <title>Laboratorio de anagramas · JueguitosLabs</title>
+  <style>
+    :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#10131d;color:#eef0f8}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% -20%,#30345d 0%,transparent 55%),#10131d}
+    button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible{outline:3px solid #ad9bff;outline-offset:3px}
+    .shell{max-width:970px;margin:auto;padding:28px 22px 65px}.brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;color:#e9e8fc;font-weight:800;letter-spacing:-.04em}.brand-icon{display:grid;place-items:center;width:34px;height:34px;border-radius:12px;background:#8e76f5;color:#11101c}
+    .tag{margin:70px 0 12px;color:#b7a8ff;font-weight:750;text-transform:uppercase;letter-spacing:.15em;font-size:.76rem}h1{font-size:clamp(2.4rem,6vw,4.4rem);letter-spacing:-.065em;line-height:1.07;margin:0 0 15px}h1 span{color:#b5a3ff}.lead{font-size:1.06rem;line-height:1.6;color:#aeb4c8;max-width:620px;margin:0 0 35px}
+    .panel{border:1px solid #363a51;border-radius:25px;background:linear-gradient(145deg,#202437,#191d2d);padding:clamp(20px,4vw,36px);box-shadow:0 25px 65px #05071055}
+    label{display:block;font-size:.83rem;color:#c9cce0;margin-bottom:11px;font-weight:700}.entry{display:flex;gap:10px;flex-wrap:wrap}input{min-width:160px;flex:1;border:1px solid #4b4e68;background:#121624;border-radius:13px;padding:15px 17px;color:white;font-size:1.1rem;letter-spacing:.09em;text-transform:uppercase}button{border:1px solid #41465e;color:#e9eafa;background:#292d43;padding:12px 16px;border-radius:12px;font-weight:700;transition:background .15s,transform .15s}button:hover:not(:disabled){background:#363b57}button:active:not(:disabled){transform:scale(.97)}button:disabled{opacity:.4;cursor:not-allowed}.primary{background:#9f8bff;color:#111323;border-color:#9f8bff}.primary:hover:not(:disabled){background:#baa9ff}.hint{color:#858da8;font-size:.82rem;margin:11px 0 0;line-height:1.5}
+    .divider{height:1px;background:#34384e;margin:29px 0}.row-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.row-title h2{margin:0;font-size:1rem}.counter{color:#a3a8bf;font-size:.85rem}
+    .tiles{display:flex;flex-wrap:wrap;gap:10px;padding:28px 0 20px;min-height:116px;align-items:center}.tile{width:clamp(43px,8vw,61px);height:clamp(55px,10vw,72px);border:1px solid #8572dc;border-bottom:4px solid #6653b8;border-radius:12px;background:linear-gradient(145deg,#a79af6,#8477d7);box-shadow:0 6px 16px #05071550;color:#141329;font-size:clamp(1.25rem,3vw,1.9rem);font-weight:850;display:grid;place-items:center;user-select:none;touch-action:manipulation;cursor:grab}.tile:hover{background:#b6a9ff;transform:translateY(-2px)}.tile.dragging{opacity:.35}.tile.over{outline:3px dashed #d5caff;outline-offset:4px}.tile.selected{outline:3px solid #e7c77c;outline-offset:4px}.empty{color:#7f87a2;margin:10px 0}
+    .actions{display:flex;flex-wrap:wrap;gap:10px}.result{margin-top:24px;padding:19px;border-radius:15px;background:#121625;border:1px solid #383d54;display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap}.result small{color:#989fbc;font-weight:700;text-transform:uppercase;letter-spacing:.1em}.word{font-size:clamp(1.2rem,4vw,1.8rem);font-weight:800;letter-spacing:.16em;overflow-wrap:anywhere;margin-top:7px}.toast{min-height:1.5rem;font-size:.86rem;color:#b8e2c7;margin:15px 0 0}.footer{color:#737d98;margin-top:25px;font-size:.86rem}.kbd{border:1px solid #454963;padding:1px 6px;border-radius:5px;color:#c6cbe0}
+    @media(max-width:550px){.tag{margin-top:45px}.entry .primary{width:100%}.panel{border-radius:19px}.tile{width:44px;height:57px}.result{align-items:flex-start}}
+    @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <a class="brand" href="./"><span class="brand-icon">✳</span> JueguitosLabs</a>
+    <p class="tag">Herramientas · Palabras</p>
+    <h1>Laboratorio de <span>anagramas.</span></h1>
+    <p class="lead">Dale vueltas a las letras, encuentra nuevas combinaciones y resuelve el acertijo por ti mismo. Sin respuestas automáticas ni trampas.</p>
+    <section class="panel" aria-label="Laboratorio de anagramas">
+      <form id="form">
+        <label for="source">Tus letras</label>
+        <div class="entry"><input id="source" autocomplete="off" spellcheck="false" maxlength="40" placeholder="Ej.: RETRATO" aria-describedby="source-hint"><button class="primary" type="submit">Crear fichas ↗</button></div>
+        <p class="hint" id="source-hint">Se eliminan espacios y signos de puntuación. Se conservan las letras repetidas y las tildes.</p>
+      </form>
+      <div class="divider"></div>
+      <div class="row-title"><h2>Mesa de trabajo</h2><span id="counter" class="counter">0 letras</span></div>
+      <div id="tiles" class="tiles" aria-label="Fichas ordenables"><p class="empty">Escribe unas letras para empezar.</p></div>
+      <p class="hint">Arrastra las fichas para reordenarlas. También puedes seleccionar dos fichas para intercambiarlas o usar las flechas del teclado.</p>
+      <div class="divider"></div>
+      <div class="actions">
+        <button id="shuffle" type="button" disabled>⇄ Mezclar</button>
+        <button id="undo" type="button" disabled>↶ Deshacer</button>
+        <button id="reset" type="button" disabled>⟲ Restablecer</button>
+        <button id="copy" type="button" disabled>⧉ Copiar</button>
+      </div>
+      <div class="result" aria-live="polite"><div><small>Combinación actual</small><div id="result" class="word">—</div></div></div>
+      <p id="toast" class="toast" role="status"></p>
+    </section>
+    <p class="footer">JueguitosLabs · Un pequeño laboratorio de juegos y lógica.</p>
+  </main>
+  <script>
+    (() => {
+      "use strict";
+      const elements = Object.fromEntries(["form","source","tiles","counter","shuffle","undo","reset","copy","result","toast"].map(id => [id,document.getElementById(id)]));
+      let original = [], letters = [], history = [], selected = null, dragged = null;
+      const normalize = text => Array.from(text.toLocaleUpperCase("es").normalize("NFC")).filter(char => /\p{L}/u.test(char));
+      const setMessage = text => { elements.toast.textContent = text; };
+      function record() { history.push([...letters]); if (history.length > 100) history.shift(); }
+      function move(from,to) {
+        if (from === to || from < 0 || to < 0 || from >= letters.length || to >= letters.length) return;
+        record();
+        const [item] = letters.splice(from,1);
+        letters.splice(to,0,item);
+        selected = null;
+        render();
+      }
+      function swap(from,to) {
+        if (from === to) { selected = null; render(); return; }
+        record();
+        [letters[from],letters[to]] = [letters[to],letters[from]];
+        selected = null;
+        render();
+      }
+      function render() {
+        elements.tiles.replaceChildren();
+        elements.counter.textContent = letters.length + (letters.length === 1 ? " letra" : " letras");
+        elements.result.textContent = letters.join("") || "—";
+        for (const [index, letter] of letters.entries()) {
+          const tile = document.createElement("button");
+          tile.type = "button"; tile.className = "tile"; tile.textContent = letter;
+          tile.draggable = true; tile.dataset.index = String(index);
+          tile.setAttribute("aria-label",letter + ", posición " + (index+1));
+          if (selected === index) tile.classList.add("selected");
+          tile.addEventListener("click", () => {
+            if (selected === null) { selected = index; render(); elements.tiles.children[index]?.focus(); }
+            else swap(selected,index);
+          });
+          tile.addEventListener("keydown", event => {
+            const offset = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+            if (!offset) return;
+            event.preventDefault();
+            const target = index + offset;
+            if (target >= 0 && target < letters.length) { move(index,target); elements.tiles.children[target]?.focus(); }
+          });
+          tile.addEventListener("dragstart",event => { dragged = index; tile.classList.add("dragging"); event.dataTransfer.effectAllowed = "move"; event.dataTransfer.setData("text/plain",String(index)); });
+          tile.addEventListener("dragover",event => { event.preventDefault(); event.dataTransfer.dropEffect = "move"; tile.classList.add("over"); });
+          tile.addEventListener("dragleave",() => tile.classList.remove("over"));
+          tile.addEventListener("drop",event => { event.preventDefault(); const from = dragged; dragged = null; if (from !== null) move(from,index); });
+          tile.addEventListener("dragend",() => { dragged = null; for(const child of elements.tiles.children) child.classList.remove("over","dragging"); });
+          elements.tiles.append(tile);
+        }
+        if (!letters.length) { const empty = document.createElement("p"); empty.className = "empty"; empty.textContent = "Escribe unas letras para empezar."; elements.tiles.append(empty); }
+        for (const id of ["shuffle","reset","copy"]) elements[id].disabled = !letters.length;
+        elements.undo.disabled = !history.length;
+      }
+      elements.form.addEventListener("submit",event => {
+        event.preventDefault();
+        const next = normalize(elements.source.value);
+        if (!next.length) { setMessage("Introduce al menos una letra."); elements.source.focus(); return; }
+        original = [...next]; letters = [...next]; history = []; selected = null;
+        elements.source.value = letters.join(""); setMessage(""); render();
+      });
+      elements.shuffle.addEventListener("click",() => {
+        if (letters.length < 2) return;
+        const before = letters.join("");
+        record();
+        for(let attempt=0;attempt<6;attempt++) {
+          for(let i=letters.length-1;i>0;i--) { const j=Math.floor(Math.random()*(i+1)); [letters[i],letters[j]]=[letters[j],letters[i]]; }
+          if(letters.join("")!==before) break;
+        }
+        if (letters.join("")===before) history.pop();
+        selected = null; render();
+      });
+      elements.undo.addEventListener("click",() => { if(history.length) {letters=history.pop(); selected=null; render();} });
+      elements.reset.addEventListener("click",() => { if(letters.join("")!==original.join("")) {record(); letters=[...original]; selected=null; render();} });
+      elements.copy.addEventListener("click",async () => {
+        const value = letters.join("");
+        try { await navigator.clipboard.writeText(value); setMessage("Combinación copiada."); }
+        catch { setMessage("No se ha podido copiar automáticamente. Selecciona el texto para copiarlo."); }
+      });
+      render();
+    })();
+  </script>
+</body>
+</html>
